@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: shipments-export
+  namespace: analytics
+spec:
+  schedule: "0 20 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: exporter
+              image: shipment-exporter:0.1
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: PGHOST
+                  value: postgres
+                - name: PGPORT
+                  value: "5432"
+                - name: PGDATABASE
+                  value: analytics
+                - name: PGUSER
+                  value: analytics
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: pg-secret
+                      key: POSTGRES_PASSWORD
+                - name: TABLE_NAME
+                  value: shipments
+                - name: OUTPUT_DIR
+                  value: /exports
+                - name: FILE_PREFIX
+                  value: shipments
+              volumeMounts:
+                - name: export-vol
+                  mountPath: /exports
+          volumes:
+            - name: export-vol
+              persistentVolumeClaim:
+                claimName: export-data

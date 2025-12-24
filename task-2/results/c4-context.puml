@@ -1,0 +1,36 @@
+@startuml
+
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+title To Be — Генерация B2B прайс-листов (каждый день в 06:00)
+
+Person(b2b, "B2B-клиент", "Получает кастомный CSV/XLS прайс-лист")
+Person(ops, "DevOps/Саппорт", "Мониторинг, алерты, разбор инцидентов")
+
+System(portal, "B2B Portal / API", "Даёт клиенту доступ к прайсам (ссылка/скачивание)")
+
+System_Boundary(k8s, "Kubernetes Cluster (Online Shop)") {
+  SystemDb(db, "PostgreSQL (Price Lists DB)", "Текущие данные по товарам/категориям/клиентам/ценам")
+  System(cron, "CronJob: Price List Exporter", "Ежедневно в 06:00 выгружает прайсы в CSV/XLS без сложной обработки")
+  System(mon, "Prometheus/Grafana", "Метрики и дашборды")
+  System(log, "ELK / Log Storage", "Централизованные логи")
+}
+
+System_Ext(storage, "Object Storage (S3/GCS/MinIO)", "Хранит сформированные CSV/XLS прайсы")
+System_Ext(notify, "Email/ChatOps (SMTP/Slack/Teams)", "Уведомления об успехе/ошибке")
+
+Rel(cron, db, "Читает и связывает данные (JOIN)", "SQL/JDBC")
+Rel(cron, storage, "Сохраняет прайсы по клиентам", "S3 API")
+Rel(cron, notify, "Отправляет уведомления", "SMTP/Webhook")
+
+Rel(b2b, portal, "Скачивает прайс-лист")
+Rel(portal, storage, "Читает/раздаёт файлы или ссылки", "HTTPS")
+
+Rel(cron, log, "Пишет логи выполнения", "stdout/stderr")
+Rel(cron, mon, "Экспортирует метрики (опционально)", "Prometheus")
+
+Rel(ops, mon, "Смотрит метрики/дашборды")
+Rel(ops, log, "Смотрит логи/разбирает ошибки")
+
+@enduml

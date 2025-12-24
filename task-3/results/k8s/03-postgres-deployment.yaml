@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pg-secret
+  namespace: analytics
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: analytics
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pg-config
+  namespace: analytics
+data:
+  POSTGRES_DB: analytics
+  POSTGRES_USER: analytics
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: analytics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: pg-config
+            - secretRef:
+                name: pg-secret
+          volumeMounts:
+            - name: pg-data
+              mountPath: /var/lib/postgresql/data
+            - name: initdb
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: pg-data
+          persistentVolumeClaim:
+            claimName: pg-data
+        - name: initdb
+          configMap:
+            name: postgres-initdb
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: analytics
+spec:
+  selector:
+    app: postgres
+  ports:
+    - name: pg
+      port: 5432
+      targetPort: 5432
