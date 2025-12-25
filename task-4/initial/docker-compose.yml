@@ -11,6 +11,10 @@ services:
       - POSTGRES_DB=$POSTGRESDB_DATABASE
     ports:
       - $POSTGRESDB_LOCAL_PORT:$POSTGRESDB_DOCKER_PORT
+    volumes:
+      - ./src/main/resources/schema-all.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./src/main/resources/loyality_data.csv:/docker-entrypoint-initdb.d/loyality_data.csv:ro
+      - ./db-init/02_load_loyality.sql:/docker-entrypoint-initdb.d/02_load_loyality.sql:ro
 
   app:
     depends_on:

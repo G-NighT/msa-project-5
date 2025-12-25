@@ -1,0 +1,31 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+title TradeWare To Be — пакетная обработка отчётов через Spring Batch
+
+Person(warehouse, "Сотрудник склада", "Загружает CSV отчёты об остатках/перемещениях")
+System(front, "ERP Web UI (Angular)", "Интерфейс загрузки отчётов и просмотра статусов")
+
+System_Boundary(platform, "Backend (GCP / k8s)") {
+  System(monolith, "Backend API (WildFly/Java)", "Принимает загрузку, валидирует базово, сохраняет файл, создаёт job")
+  System(batch, "Spring Batch ETL Service", "Пакетная обработка CSV: чтение → обогащение → запись в БД")
+  SystemDb(pg, "PostgreSQL", "Номенклатура/остатки/справочники/таблицы batch")
+}
+
+System_Ext(gcs, "GCS (Object Storage)", "Хранение загруженных CSV отчётов")
+System_Ext(obs, "Observability Stack", "Logs/metrics/traces: ELK + Prometheus/Grafana + (Jaeger/Tempo)")
+
+Rel(warehouse, front, "Загружает CSV, получает статус")
+Rel(front, monolith, "REST/HTTP")
+Rel(monolith, gcs, "Сохраняет исходный CSV", "GCS API")
+Rel(monolith, pg, "Создаёт запись о загрузке/статус", "SQL")
+
+Rel(batch, gcs, "Читает CSV по ссылке/пути", "GCS API")
+Rel(batch, pg, "Читает справочники (например, loyality_data)", "SQL")
+Rel(batch, pg, "Пишет обогащённые данные (products/остатки)", "SQL (batch insert/upsert)")
+
+Rel(monolith, obs, "Логи/метрики", "OTel/Logs/Metrics")
+Rel(batch, obs, "Логи/метрики/трейсы", "OTel/Logs/Metrics")
+
+@enduml
