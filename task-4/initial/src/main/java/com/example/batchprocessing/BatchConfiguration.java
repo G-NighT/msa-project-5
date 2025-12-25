@@ -24,9 +24,9 @@ public class BatchConfiguration {
 	@Bean
 	public FlatFileItemReader<Product> reader() {
 		return new FlatFileItemReaderBuilder<Product>()
-			//todo
-			.targetType(Product.class)
-			.build();
+				// todo
+				.targetType(Product.class)
+				.build();
 	}
 
 	@Bean

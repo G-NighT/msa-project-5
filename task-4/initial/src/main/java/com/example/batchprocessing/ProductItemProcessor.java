@@ -19,7 +19,7 @@ public class ProductItemProcessor implements ItemProcessor<Product, Product> {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
-    @Override
+	@Override
 	public Product process(final Product product) {
       //todo
 
