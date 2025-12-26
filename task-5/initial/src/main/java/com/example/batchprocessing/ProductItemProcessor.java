@@ -19,11 +19,24 @@ public class ProductItemProcessor implements ItemProcessor<Product, Product> {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
-    @Override
+	@Override
 	public Product process(final Product product) {
-      //todo
+		AtomicReference<Product> transformed = new AtomicReference<>(product);
 
-		return //todo
+		String sql = "SELECT productSku, loyalityData FROM loyality_data WHERE productSku = ?";
+
+		jdbcTemplate.query(sql, new DataClassRowMapper<>(Loyality.class), product.productSku())
+				.stream()
+				.findFirst()
+				.ifPresent(loy -> transformed.set(
+						new Product(
+								product.productId(),
+								product.productSku(),
+								product.productName(),
+								product.productAmount(),
+								loy.loyalityData())));
+
+		log.info("Transforming ({}) into ({})", product, transformed.get());
+		return transformed.get();
 	}
-
 }

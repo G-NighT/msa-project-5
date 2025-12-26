@@ -1,0 +1,18 @@
+groups:
+  - name: app-alerts
+    rules:
+      - alert: AppDown
+        expr: up{job="batch-processing"} == 0
+        for: 10s
+        labels:
+          severity: critical
+        annotations:
+          summary: "batch-processing is down"
+
+      - alert: HighCpuUsage
+        expr: (process_cpu_usage{job="batch-processing"} * 100) > 80
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on batch-processing"

@@ -1,0 +1,28 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title TradeWare — Наблюдаемость (Task 5)
+
+Person(user, "Сотрудник склада", "Загружает отчёты и проверяет результат")
+
+System_Boundary(sys, "Платформа TradeWare") {
+  System(app, "Spring Batch приложение", "Spring Boot + Spring Batch\nETL + Actuator метрики + файловые логи")
+  SystemDb(pg, "PostgreSQL", "Операционная БД")
+  System_Ext(gcs, "Файловое хранилище (GCS)", "Загруженные отчёты (в перспективе)")
+
+  System(monitoring, "Мониторинг", "Prometheus + Grafana")
+  System(logging, "Централизованное логирование", "Filebeat + Logstash + Elasticsearch + Kibana")
+}
+
+Rel(user, app, "Запускает обработку/проверяет статус", "HTTP")
+Rel(app, pg, "Чтение/запись данных", "SQL")
+Rel(app, gcs, "Чтение/запись файлов отчётов (в перспективе)", "API")
+
+Rel(app, monitoring, "Экспорт метрик", "HTTP /actuator/prometheus")
+Rel(monitoring, app, "Scrape метрик", "Prometheus scrape")
+Rel(monitoring, user, "Дашборды и статус алертов", "Grafana UI")
+
+Rel(app, logging, "Запись структурированных логов в файл", "JSON log file")
+Rel(logging, user, "Поиск и просмотр логов", "Kibana UI")
+
+@enduml
