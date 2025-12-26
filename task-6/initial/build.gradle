@@ -30,6 +30,8 @@ dependencies {
 
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
   testImplementation 'org.springframework.batch:spring-batch-test'
+
+  implementation 'io.micrometer:micrometer-tracing-bridge-brave'
 }
 
 tasks.named('test') {

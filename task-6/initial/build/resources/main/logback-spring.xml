@@ -10,8 +10,31 @@
 
     <!-- консольный appender (для docker logs) -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <customFields>{"service":"${APP_NAME}"}</customFields>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <timeZone>UTC</timeZone>
+                    <fieldName>@timestamp</fieldName>
+                </timestamp>
+
+                <pattern>
+                    <pattern>
+                        {
+                          "@version":"1",
+                          "service":"${APP_NAME}",
+                          "level":"%level",
+                          "logger_name":"%logger",
+                          "thread_name":"%thread",
+                          "message":"%message",
+                          "traceId":"%X{traceId:-}",
+                          "spanId":"%X{spanId:-}",
+                          "uri":"%X{uri:-}"
+                        }
+                    </pattern>
+                </pattern>
+
+                <stackTrace/>
+            </providers>
         </encoder>
     </appender>
 
@@ -25,8 +48,31 @@
             <cleanHistoryOnStart>true</cleanHistoryOnStart>
         </rollingPolicy>
 
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <customFields>{"service":"${APP_NAME}"}</customFields>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <timeZone>UTC</timeZone>
+                    <fieldName>@timestamp</fieldName>
+                </timestamp>
+
+                <pattern>
+                    <pattern>
+                        {
+                          "@version":"1",
+                          "service":"${APP_NAME}",
+                          "level":"%level",
+                          "logger_name":"%logger",
+                          "thread_name":"%thread",
+                          "message":"%message",
+                          "traceId":"%X{traceId:-}",
+                          "spanId":"%X{spanId:-}",
+                          "uri":"%X{uri:-}"
+                        }
+                    </pattern>
+                </pattern>
+
+                <stackTrace/>
+            </providers>
         </encoder>
     </appender>
 
