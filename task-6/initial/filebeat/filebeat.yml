@@ -1,0 +1,27 @@
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/batch/app.log
+      - /var/log/batch/app.*.log
+
+    json.keys_under_root: true
+    json.add_error_key: true
+    json.expand_keys: true
+
+    fields_under_root: true
+    fields:
+      app: batch-processing
+      env: local
+
+processors:
+  - add_host_metadata: {}
+  - add_docker_metadata: {}
+
+output.logstash:
+  hosts: ["logstash:5044"]
+
+logging.level: info
+logging.to_files: false
+logging.to_syslog: false
+ssl.verification_mode: none
